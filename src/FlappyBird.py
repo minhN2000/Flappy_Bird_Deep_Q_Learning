@@ -8,8 +8,8 @@ from pygame.image import load
 from pygame.surfarray import array3d, pixels_alpha
 
 
-class flappyBird():
-
+class FlappyBird():
+    
     class Bird(pygame.sprite.Sprite):
         def __init__(self, x, y):
             pygame.sprite.Sprite.__init__(self)
@@ -25,7 +25,7 @@ class flappyBird():
             self.vel = 0
             self.clicked = False
 
-        def update(self, flying, gameOver):
+        def update(self, flying, gameOver, action):
             if flying == True:
                 THRESHOLD = 8
                 self.vel += 0.5
@@ -35,11 +35,11 @@ class flappyBird():
                     self.rect.y += int(self.vel)
 
             if gameOver == False:
-                # jump
-                if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                # jump:  pygame.mouse.get_pressed()[0] == 1 | action == 1 
+                if action == 1 and self.clicked == False:
                     self.clicked = True
                     self.vel = -10
-                if pygame.mouse.get_pressed()[0] == 0:
+                if action == 0:
                     self.clicked = False 
 
                 self.counter += 1
@@ -92,10 +92,11 @@ class flappyBird():
             return action
 
     def __init__(self) -> None:
+        pygame.init()
         self.flying = False
         self.gameOver = False
         self.score = 0
-        pygame.init()
+        
 
         self.SCREEN_HEIGHT = 514
         self.SCREEN_WIDTH = 288 
@@ -103,7 +104,7 @@ class flappyBird():
         self.SCROLL_SPEED = 4
 
         self.lastPipe = pygame.time.get_ticks()
-        self.fps = 60
+        self.fps = 30
 
         self.font = pygame.font.SysFont('Bauhaus 93', 60)
         self.textColor = (255, 255, 255)
@@ -114,7 +115,7 @@ class flappyBird():
         self.background = pygame.image.load('img/bg.png') #sky
         self.ground = pygame.image.load('img/ground.png')
 
-        self.ButtonImage = pygame.image.load('img/restart.png')
+        #Image = pygame.image.load('img/restart.png')
 
         self.groundScroll = 0
 
@@ -128,7 +129,7 @@ class flappyBird():
         self.flappyBird = self.Bird(100, int(self.SCREEN_HEIGHT / 2))
         self.birdGroup.add(self.flappyBird)
 
-        self.Button = self.Button(self.SCREEN_WIDTH // 2 - 50, self.SCREEN_HEIGHT // 2 - 100, self.ButtonImage)
+        #self.Button = self.Button(self.SCREEN_WIDTH // 2 - 50, self.SCREEN_HEIGHT // 2 - 100, self.ButtonImage)
 
     def drawText(self, text, font, textColor, x, y):
         img = self.font.render(text, True, self.textColor)
@@ -136,78 +137,84 @@ class flappyBird():
 
     def resetGame(self):
         self.pipeGroup.empty()
-        self.flappyBird.rect.x = 100
-        self.flappyBird.rect.y = int(self.SCREEN_HEIGHT / 2)
+        self.birdGroup.empty()
+
+        self.flappyBird = self.Bird(100, int(self.SCREEN_HEIGHT / 2))
+        self.birdGroup.add(self.flappyBird)
         #self.flappyBird.change()
         return 0
 
-    def play(self):
-        while True:
-            self.clock.tick(self.fps)
+    def play(self, action):
+        reward = 0.1
+        done = False
+        self.clock.tick(self.fps)
 
-            self.screen.blit(self.background, (0,0))
+        self.screen.blit(self.background, (0,0))
 
-            self.birdGroup.draw(self.screen)
-            self.birdGroup.update(self.flying, self.gameOver)
+        self.birdGroup.draw(self.screen)
+        self.birdGroup.update(self.flying, self.gameOver, action)
 
-            self.pipeGroup.draw(self.screen)
-            
+        self.pipeGroup.draw(self.screen)
+        
 
-            self.screen.blit(self.ground, (self.groundScroll,768))
+        self.screen.blit(self.ground, (self.groundScroll,self.SCREEN_HEIGHT * 0.90))
 
-            if len(self.pipeGroup) >  0:
-                if self.birdGroup.sprites()[0].rect.left > self.pipeGroup.sprites()[0].rect.left \
-                    and self.birdGroup.sprites()[0].rect.right < self.pipeGroup.sprites()[0].rect.right \
-                    and self.passPipe == False:
-                        self.passPipe = True
-                if self.passPipe == True:
-                    if self.birdGroup.sprites()[0].rect.right > self.pipeGroup.sprites()[0].rect.right:
-                        self.passPipe = False
-                        self.score += 1
+        if len(self.pipeGroup) >  0:
+            if self.birdGroup.sprites()[0].rect.left > self.pipeGroup.sprites()[0].rect.left \
+                and self.birdGroup.sprites()[0].rect.right < self.pipeGroup.sprites()[0].rect.right \
+                and self.passPipe == False:
+                    self.passPipe = True
+            if self.passPipe == True:
+                if self.birdGroup.sprites()[0].rect.right > self.pipeGroup.sprites()[0].rect.right:
+                    self.passPipe = False
+                    self.score += 1
+                    reward = 1
 
-            self.drawText(str(self.score), self.font, self.textColor, int(self.SCREEN_WIDTH / 2), 20)
+        self.drawText(str(self.score), self.font, self.textColor, int(self.SCREEN_WIDTH / 2), 20)
 
-            if self.flappyBird.rect.top <= 0\
-               or pygame.sprite.groupcollide(self.birdGroup, self.pipeGroup, False, False):
-                self.gameOver = True
+        if self.flappyBird.rect.bottom >= self.SCREEN_HEIGHT * 0.90 or self.flappyBird.rect.top <= 0\
+            or pygame.sprite.groupcollide(self.birdGroup, self.pipeGroup, False, False):
+            self.gameOver = True
+            self.flying = False
+            reward = -1
 
-            if self.flappyBird.rect.bottom >= 768:
-                self.gameOver = True
-                self.flying = False
+        if self.gameOver == False and self.flying == True:
+            # Generate pipe
+            timeNow = pygame.time.get_ticks()
+            if timeNow - self.lastPipe > self.PIPE_FREQUENCY:
+                pipeHeight = random.randint(-60, 60)
+                bottomPipe = self.Pipe(self.SCREEN_WIDTH, int(self.SCREEN_HEIGHT / 2) + pipeHeight, -1)
+                topPipe = self.Pipe(self.SCREEN_WIDTH, int(self.SCREEN_HEIGHT / 2) + pipeHeight, 1)
+                self.pipeGroup.add(bottomPipe)
+                self.pipeGroup.add(topPipe)
+                self.lastPipe = timeNow
+            # Scroll the self.ground
+            self.groundScroll -= self.SCROLL_SPEED
+            if abs(self.groundScroll) > 35:
+                self.groundScroll = 0
+            self.pipeGroup.update()
 
-            if self.gameOver == False and self.flying == True:
-                #print(len(self.pipeGroup))
-                # Generate pipe
-                timeNow = pygame.time.get_ticks()
-                if timeNow - self.lastPipe > self.PIPE_FREQUENCY:
-                    pipeHeight = random.randint(-100, 100)
-                    bottomPipe = self.Pipe(self.SCREEN_WIDTH, int(self.SCREEN_HEIGHT / 2) + pipeHeight, -1)
-                    topPipe = self.Pipe(self.SCREEN_WIDTH, int(self.SCREEN_HEIGHT / 2) + pipeHeight, 1)
-                    self.pipeGroup.add(bottomPipe)
-                    self.pipeGroup.add(topPipe)
-                    self.lastPipe = timeNow
-                # Scroll the self.ground
-                self.groundScroll -= self.SCROLL_SPEED
-                if abs(self.groundScroll) > 35:
-                    self.groundScroll = 0
-                self.pipeGroup.update()
+        if self.gameOver == True:
+            done = True
+            #if self.Button.draw(self.screen): # this is for normal flappy bird
+            self.score = self.resetGame()     
+            self.gameOver = False
+            self.flying = True
 
-            if self.gameOver == True:
-                if self.Button.draw(self.screen):
-                    self.score = self.resetGame()     
-                    self.gameOver = False
-                    self.flying = False
-                    
-                    #self.birdGroup.sprites()[0].image = self.birdGroup.sprites()[0].images[self.birdGroup.sprites()[0].index]
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if self.flying == False and self.gameOver == False: # event.type == pygame.MOUSEBUTTONDOWN and 
+                self.flying = True
+        
+        pygame.display.update()
+        image = array3d(pygame.display.get_surface())
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN and self.flying == False and self.gameOver == False:
-                    self.flying = True
-            
-            pygame.display.update()
+        return image, reward, done
 
-fla = flappyBird()
-fla.play()
+# flap = FlappyBird()
+
+# while True:
+#     rand = random.randint(0,1)
+#     flap.play(rand)

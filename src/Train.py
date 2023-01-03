@@ -16,13 +16,13 @@ def _args():
     parser = argparse.ArgumentParser(
         """Implementation of Deep Q Network to play Flappy Bird""")
     parser.add_argument("--imageSize", type=int, default=84, help="The common width and height for all images")
-    parser.add_argument("--batch", type=int, default=64, help="The number of images per batch")
+    parser.add_argument("--batch", type=int, default=32, help="The number of images per batch")
     parser.add_argument("--optimizer", type=str, choices=["sgd", "adam"], default="adam")
     parser.add_argument("--learningRate", type=float, default=1e-6)
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--epsilon0", type=float, default=0.1)
     parser.add_argument("--epsilon1", type=float, default=1e-4)
-    parser.add_argument("--numberIters", type=int, default=2000000)
+    parser.add_argument("--numberIters", type=int, default=3000000)
     parser.add_argument("--replayMemorySize", type=int, default=50000,
                         help="Number of epoches between testing phases")
     parser.add_argument("--logPath", type=str, default="tensorboard")
@@ -75,6 +75,7 @@ def train(opt):
         nextImage, reward, done = game.play(action)
         nextImage = preProcessing(nextImage[:game.SCREEN_WIDTH, :int(game.SCREEN_HEIGHT*0.90)], opt.imageSize, opt.imageSize)
         nextImage = torch.from_numpy(nextImage)
+        
         if torch.cuda.is_available():
             nextImage = nextImage.cuda()
         nextState = torch.cat(tuple(nextImage for _ in range(4)))[None, :, :, :]

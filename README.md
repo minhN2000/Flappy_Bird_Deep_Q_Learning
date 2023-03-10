@@ -31,6 +31,7 @@ train.py [--options]
 
 Current results show that the Bird averagely score 15 per play. I will keep update the training. Stay tuned.
 
-https://github.com/minhN2000/Flappy_Bird_Deep_Q_Learning/blob/main/result/Flappy%20Bird%20Res%20v1.mp4
+https://user-images.githubusercontent.com/71093113/224202462-3c351bea-25d8-4a3b-9e1f-53cbfcde22f3.mp4
+
 
 ## References

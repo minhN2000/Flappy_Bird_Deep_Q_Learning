@@ -37,4 +37,4 @@ https://user-images.githubusercontent.com/71093113/224202462-3c351bea-25d8-4a3b-
 ## References
 - [Flappy Bird with Pygame](https://www.youtube.com/watch?v=GiUGVOqqCKg&list=PLjcN1EyupaQkz5Olxzwvo1OzDNaNLGWoJ&ab_channel=CodingWithRuss) by Coding with Russ.
 - [Deep Reinforcement Learning in Action](https://www.google.com/search?q=deep+reinforcement+learning+in+action&rlz=1C1RXQR_enUS979US979&oq=Deep+Reinforcement+Learning+in+Action&aqs=chrome.0.0i512j0i20i263i512l2j0i512j0i22i30l6.289j0j4&sourceid=chrome&ie=UTF-8&si=AEcPFx71Yi7YECiZ82vRWCw7NKNJZ9ALQCf9tGTuvAPobXXiAjWvB9O85LB0jABkF010LGls-BHl5YzswLEyR1YGLUuzntVbMXRz_0_HacVYtI48AFmt-hxu7lQXe71_nqaZZpz7F5VnorMEfVssoHZ_5zbUb-e1Lg%3D%3D&ictx=1&ved=2ahUKEwi9goCKoND9AhWolGoFHb6NCZ4QnZMFegQIaxAC) by Zai and Brown.
-- [The Deep Reinforcement Learning Course](https://huggingface.co/deep-rl-course/unit0/introduction) by Hugging Face team.
+- [The Deep Reinforcement Learning Course](https://huggingface.co/deep-rl-course/unit0/introduction) by the Hugging Face team.
